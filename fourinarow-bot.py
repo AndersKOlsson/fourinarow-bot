@@ -30,6 +30,7 @@ class Bot(object):
     def place_disc(self, column):
         """ Writes your next play in stdout. """
         stdout.write("place_disc %d\n" % column)
+        stderr.write("place_disc %d\n" % column)
         stdout.flush()
 
     def simulate_place_disc(self, board, col_nr, curr_player):
@@ -42,6 +43,53 @@ class Bot(object):
             if new_board[row_nr, col_nr] == 0:
                 new_board[row_nr, col_nr] = curr_player
                 return new_board
+
+    def four_in_row(self, board, player):
+        win = (self._check_horizonal(board, player) or
+               self._check_vertical(board, player) or
+               self._check_diagonal_up(board, player) or
+               self._check_diagonal_down(board, player))
+        return win
+
+    def _check_horizonal(self, board, player):
+        for row_nr in range(self.rows()):
+            for col_nr in range(0, self.cols()-4):
+                if board[row_nr][col_nr] == player \
+                        and board[row_nr][col_nr+1] == player \
+                        and board[row_nr][col_nr+2] == player \
+                        and board[row_nr][col_nr+3] == player:
+                            return True
+        return False
+
+    def _check_vertical(self, board, player):
+        for col_nr in range(self.cols()):
+            for row_nr in range(self.rows()-4):
+                if board[row_nr][col_nr] == player \
+                        and board[row_nr+1][col_nr] == player \
+                        and board[row_nr+2][col_nr] == player \
+                        and board[row_nr+3][col_nr] == player:
+                            return True
+        return False
+
+    def _check_diagonal_up(self, board, player):
+        for row_nr in range(0, self.rows()-4):
+            for col_nr in range(0, self.cols()-4):
+                if board[row_nr][col_nr] == player \
+                        and board[row_nr+1][col_nr+1] == player \
+                        and board[row_nr+2][col_nr+2] == player \
+                        and board[row_nr+3][col_nr+3] == player:
+                            return True
+        return False
+
+    def _check_diagonal_down(self, board, player):
+        for row_nr in range(self.rows(), 4):
+            for col_nr in range(self.cols(), 4):
+                if board[row_nr][col_nr] == player \
+                        and board[row_nr-1][col_nr-1] == player \
+                        and board[row_nr-2][col_nr-2] == player \
+                        and board[row_nr-3][col_nr-3] == player:
+                            return True
+        return False
 
     def id(self):
         """ Returns own bot id. """
@@ -114,6 +162,11 @@ class Bot(object):
 
 class UltiBot(Bot):
     def make_turn(self):
+        for col in range(self.cols()):
+            board = self.simulate_place_disc(self.board, col, self.id())
+            if self.four_in_row(board, self.id()):
+                self.place_disc(col)
+                return
         self.place_disc(random.randrange(7))
 
 
